@@ -82,13 +82,101 @@
             gap: 8px;
         }
 
+        /* STYLING PETA BERGERAK INTERAKTIF */
+        .map-journey-container {
+            width: 100%;
+            background: #fdf3dc;
+            border: 3px solid #b8860b;
+            border-radius: 14px;
+            padding: 15px 10px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .map-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #4a150b;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .map-track {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Garisan Latar Belakang Peta */
+        .map-track::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 30px;
+            right: 30px;
+            height: 4px;
+            background: #d4af37;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .map-node {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff8e1;
+            border: 2px solid #b8860b;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.4s ease;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        .map-node span.node-label {
+            position: absolute;
+            bottom: -22px;
+            font-size: 0.72rem;
+            font-weight: bold;
+            color: #4a150b;
+            white-space: nowrap;
+        }
+
+        .map-node.active {
+            background: #ffc107;
+            border-color: #e65100;
+            transform: scale(1.2);
+            box-shadow: 0 0 12px rgba(230, 81, 0, 0.6);
+            animation: nodePulse 1.2s infinite alternate;
+        }
+
+        .map-node.completed {
+            background: #c8e6c9;
+            border-color: #2e7d32;
+        }
+
+        @keyframes nodePulse {
+            0% { transform: scale(1.1); }
+            100% { transform: scale(1.25); }
+        }
+
         .progress-bar-container {
             width: 100%;
-            height: 14px;
+            height: 12px;
             background: #e0d0c0;
             border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             border: 1px solid #b8860b;
         }
 
@@ -264,7 +352,7 @@
         <!-- SKRIN MULA -->
         <div id="startScreen" class="start-screen">
             <h1 class="title-text">🏛️ EPISOD 4: BERUNDUR KE MUAR</h1>
-            <p class="subtitle-text"><b>Kembara Kesultanan Melayu Klasik</b><br>Uji minda anda mengenai ancaman di Temasik dan persinggahan di Muar. Setiap jawapan betul bernilai <b>5 Markah</b>!</p>
+            <p class="subtitle-text"><b>Kembara Kesultanan Melayu Klasik</b><br>Uji minda anda mengenai ancaman di Temasik dan persinggahan di Muar. Ikuti peta pelayaran Parameswara! Setiap jawapan betul bernilai <b>5 Markah</b>!</p>
             <button class="btn-start" onclick="startGame()">MULA PENGEMBARAAN ⚔️</button>
         </div>
 
@@ -273,6 +361,18 @@
             <div class="header-bar">
                 <span class="badge" id="questionNum">Soalan 1/5</span>
                 <div class="score-board">⭐ Markah: <span id="scoreText">0</span> / 25</div>
+            </div>
+
+            <!-- PETA PENGEMBARAAN BERGERAK -->
+            <div class="map-journey-container">
+                <div class="map-title">🗺️ Peta Pelayaran Parameswara</div>
+                <div class="map-track">
+                    <div class="map-node" id="node-0"><span>🏛️</span><span class="node-label">Temasik</span></div>
+                    <div class="map-node" id="node-1"><span>⛵</span><span class="node-label">Pelayaran</span></div>
+                    <div class="map-node" id="node-2"><span>🏝️</span><span class="node-label">Muar</span></div>
+                    <div class="map-node" id="node-3"><span>🧭</span><span class="node-label">Strategi</span></div>
+                    <div class="map-node" id="node-4"><span>👑</span><span class="node-label">Destinasi</span></div>
+                </div>
             </div>
 
             <div class="progress-bar-container">
@@ -427,11 +527,26 @@
             currentIdx = 0;
             score = 0;
             updateScoreUI();
+            updateMapJourney();
             loadQuestion();
+        }
+
+        function updateMapJourney() {
+            for (let i = 0; i < questions.length; i++) {
+                let node = document.getElementById(`node-${i}`);
+                if (!node) continue;
+                node.classList.remove('active', 'completed');
+                if (i < currentIdx) {
+                    node.classList.add('completed');
+                } else if (i === currentIdx) {
+                    node.classList.add('active');
+                }
+            }
         }
 
         function loadQuestion() {
             canAnswer = true;
+            updateMapJourney();
             let q = questions[currentIdx];
             
             document.getElementById('questionNum').innerText = `Soalan ${currentIdx + 1}/${questions.length}`;
@@ -476,6 +591,7 @@
                 if (currentIdx < questions.length) {
                     loadQuestion();
                 } else {
+                    updateMapJourney();
                     showEndScreen();
                 }
             }, 1500);
