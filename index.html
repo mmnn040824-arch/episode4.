@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Episod 4: Peta Pengembaraan Parameswara</title>
+    <style>
+        :root {
+            --primary-brown: #2d150b;
+            --accent-gold: #ffc107;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Georgia', serif;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2d150b 0%, #4a150b 50%, #1a0c06 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .game-container {
+            width: 90%;
+            max-width: 820px;
+            background: rgba(253, 250, 246, 0.95);
+            border: 6px solid #b8860b;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #4a150b;
+            color: #ffecb3;
+            padding: 12px 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 2px solid #b8860b;
+        }
+
+        .badge {
+            background: #b8860b;
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .score-board {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffca28;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 14px;
+            background: #e0d0c0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            border: 1px solid #b8860b;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #b8860b, #ffd700);
+            transition: width 0.4s ease;
+        }
+
+        .question-box {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c1d18;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            background: #fff8e1;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #d4af37;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-card {
+            background: #ffffff;
+            border: 3px solid #d4af37;
+            border-radius: 14px;
+            padding: 18px 15px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.02rem;
+            font-weight: 600;
+            color: #3e2723;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            min-height: 100px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .option-card:hover {
+            transform: translateY(-4px);
+            border-color: #b8860b;
+            box-shadow: 0 8px 16px rgba(184, 134, 11, 0.3);
+            background: #fff3e0;
+        }
+
+        .option-card.correct {
+            background: #c8e6c9 !important;
+            border-color: #2e7d32 !important;
+            color: #1b5e20 !important;
+            animation: pulse 0.5s ease;
+        }
+
+        .option-card.wrong {
+            background: #ffcdd2 !important;
+            border-color: #c62828 !important;
+            color: #b71c1c !important;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .start-screen, .end-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, #4a150b, #7b1fa2);
+            color: #ffecb3;
+            border: 2px solid #b8860b;
+            padding: 15px 40px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 15px;
+            font-family: 'Georgia', serif;
+            position: relative;
+            z-index: 20;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.06);
+            box-shadow: 0 10px 20px rgba(184, 134, 11, 0.5);
+        }
+
+        .title-text {
+            color: #4a150b;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .subtitle-text {
+            color: #5d4037;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .audio-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #4a150b;
+            color: #ffecb3;
+            border: 2px solid #b8860b;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .next-laci-box {
+            background: #fff9c4;
+            border: 3px dashed #f57f17;
+            padding: 20px;
+            border-radius: 14px;
+            margin-top: 20px;
+            animation: bounce 1.5s infinite alternate;
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-6px); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="game-container">
+        <button class="audio-btn" id="audioToggle" onclick="toggleSound()">🎵</button>
+
+        <!-- SKRIN MULA -->
+        <div id="startScreen" class="start-screen">
+            <h1 class="title-text">🏛️ EPISOD 4: BERUNDUR KE MUAR</h1>
+            <p class="subtitle-text"><b>Kembara Kesultanan Melayu Klasik</b><br>Uji minda anda mengenai ancaman di Temasik dan persinggahan di Muar. Setiap jawapan betul bernilai <b>5 Markah</b>!</p>
+            <button class="btn-start" onclick="startGame()">MULA PENGEMBARAAN ⚔️</button>
+        </div>
+
+        <!-- SKRIN PERMAINAN -->
+        <div id="gameScreen" class="hidden">
+            <div class="header-bar">
+                <span class="badge" id="questionNum">Soalan 1/5</span>
+                <div class="score-board">⭐ Markah: <span id="scoreText">0</span> / 25</div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="question-box" id="questionText">Soalan akan dipaparkan di sini...</div>
+
+            <div class="cards-grid" id="optionsGrid"></div>
+        </div>
+
+        <!-- SKRIN TAMAT -->
+        <div id="endScreen" class="end-screen hidden">
+            <h1 class="title-text">🎉 TAHNIAH! MISI SELESAI 🎉</h1>
+            <p class="subtitle-text" style="font-size: 1.3rem;">Anda telah berjaya mengharungi kembara di Laci 4 dengan cemerlang!</p>
+            
+            <div style="font-size: 2.3rem; font-weight: 800; color: #4a150b; margin: 15px 0; background: #fff3e0; padding: 10px 20px; border-radius: 12px; border: 2px solid #b8860b;">
+                JUMLAH MARKAH: <span id="finalScore">0</span> / 25
+            </div>
+
+            <div class="next-laci-box">
+                <h2 style="margin:0; color: #e65100; font-size: 1.4rem;">➡️ TERUS KE LACI LIMA!</h2>
+                <p style="margin:8px 0 0 0; color: #3e2723; font-size: 1.1rem;">Tahniah! Sila bergerak ke <b>Laci Lima: Sening Ujong & Muara Sungai Bertam</b> untuk babak seterusnya!</p>
+            </div>
+
+            <button class="btn-start" onclick="restartGame()" style="margin-top: 20px;">MAIN SEMULA 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let bgmInterval = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTone(freq, type, duration, vol = 0.1) {
+            if (isMuted || !audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function startBGM() {
+            initAudio();
+            if (bgmInterval) clearInterval(bgmInterval);
+            let notes = [220.00, 246.94, 293.66, 329.63, 293.66, 246.94];
+            let noteIdx = 0;
+            bgmInterval = setInterval(() => {
+                if (!isMuted) {
+                    playTone(notes[noteIdx], 'triangle', 0.4, 0.04);
+                    noteIdx = (noteIdx + 1) % notes.length;
+                }
+            }, 500);
+        }
+
+        function playSFX(type) {
+            initAudio();
+            if (isMuted) return;
+            if (type === 'correct') {
+                playTone(523.25, 'sine', 0.15, 0.2);
+                setTimeout(() => playTone(659.25, 'sine', 0.2, 0.2), 120);
+            } else if (type === 'wrong') {
+                playTone(160, 'sawtooth', 0.25, 0.2);
+            } else if (type === 'win') {
+                let winNotes = [392, 523.25, 659.25, 783.99];
+                winNotes.forEach((n, i) => {
+                    setTimeout(() => playTone(n, 'sine', 0.3, 0.25), i * 140);
+                });
+            }
+        }
+
+        function toggleSound() {
+            isMuted = !isMuted;
+            document.getElementById('audioToggle').innerText = isMuted ? '🔇' : '🎵';
+        }
+
+        // Soalan Episod 4 (Fokus Temasik & Muar sahaja)
+        const questions = [
+            {
+                q: "Apakah sebab utama Parameswara membuat keputusan berundur meninggalkan Temasik?",
+                options: [
+                    "Baginda mendapat maklumat mengenai ancaman serangan daripada kerajaan Siam",
+                    "Kawasan Temasik mengalami kemarau panjang dan kekurangan air bersih",
+                    "Baginda mahu menubuhkan kerajaan baharu di kepulauan Borneo"
+                ],
+                correct: 0
+            },
+            {
+                q: "Selepas meninggalkan Temasik, apakah lokasi persinggahan pertama yang dituju oleh Parameswara?",
+                options: [
+                    "Sening Ujong",
+                    "Muar",
+                    "Melaka"
+                ],
+                correct: 1
+            },
+            {
+                q: "Mengapakah Parameswara dan pengikutnya tidak jadi membina pusat pemerintahan yang kekal di Muar?",
+                options: [
+                    "Kerana kawasan tersebut didapati mempunyai terlalu banyak biawak",
+                    "Kerana tanah di Muar tidak subur untuk pertanian",
+                    "Kerana muara sungainya terlalu cetek untuk kapal pedagang"
+                ],
+                correct: 0
+            },
+            {
+                q: "Apakah kelebihan geografi kawasan Muar yang menarik minat Parameswara untuk singgah di situ?",
+                options: [
+                    "Kedudukannya yang strategik sebagai laluan perlindungan sementara",
+                    "Kawasan tersebut merupakan pusat empayar perdagangan antarabangsa yang besar",
+                    "Terdapat kemudahan pelabuhan batu Arang yang lengkap"
+                ],
+                correct: 0
+            },
+            {
+                q: "Jika anda berada di tempat Parameswara ketika menghadapi ancaman musuh yang kuat, apakah tindakan paling rasional yang harus diambil untuk menyelamatkan rakyat?",
+                options: [
+                    "Merancang strategi berundur secara teratur demi keselamatan dan kelangsungan hidup",
+                    "Berlawan sendirian tanpa bantuan pengikut di medan perang",
+                    "Menyerah diri dan membiarkan musuh mengambil alih seluruh tanah air"
+                ],
+                correct: 0
+            }
+        ];
+
+        let currentIdx = 0;
+        let score = 0;
+        let canAnswer = true;
+
+        function startGame() {
+            startBGM();
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('endScreen').classList.add('hidden');
+            currentIdx = 0;
+            score = 0;
+            updateScoreUI();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            canAnswer = true;
+            let q = questions[currentIdx];
+            
+            document.getElementById('questionNum').innerText = `Soalan ${currentIdx + 1}/${questions.length}`;
+            document.getElementById('questionText').innerText = q.q;
+            
+            let progressPct = ((currentIdx) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progressPct}%`;
+
+            let optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+
+            q.options.forEach((optText, index) => {
+                let card = document.createElement('div');
+                card.className = 'option-card';
+                card.innerText = optText;
+                card.onclick = () => selectOption(index, card);
+                optionsGrid.appendChild(card);
+            });
+        }
+
+        function selectOption(selectedIndex, cardEl) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            let q = questions[currentIdx];
+            let allCards = document.querySelectorAll('.option-card');
+
+            if (selectedIndex === q.correct) {
+                cardEl.classList.add('correct');
+                playSFX('correct');
+                score += 5; 
+                updateScoreUI();
+                fireConfetti(0.3);
+            } else {
+                cardEl.classList.add('wrong');
+                allCards[q.correct].classList.add('correct');
+                playSFX('wrong');
+            }
+
+            setTimeout(() => {
+                currentIdx++;
+                if (currentIdx < questions.length) {
+                    loadQuestion();
+                } else {
+                    showEndScreen();
+                }
+            }, 1500);
+        }
+
+        function updateScoreUI() {
+            document.getElementById('scoreText').innerText = score;
+        }
+
+        function showEndScreen() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('endScreen').classList.remove('hidden');
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('progressBar').style.width = `100%`;
+
+            if (bgmInterval) clearInterval(bgmInterval);
+            playSFX('win');
+            fireConfettiCelebration();
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function createParticle(x, y) {
+            const colors = ['#b8860b', '#ffd700', '#d72638', '#4a150b', '#2e7d32'];
+            return {
+                x: x,
+                y: y,
+                size: Math.random() * 8 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                vx: (Math.random() - 0.5) * 12,
+                vy: (Math.random() - 2) * 10 - 4,
+                gravity: 0.25,
+                opacity: 1,
+                rotation: Math.random() * 360,
+                spin: (Math.random() - 0.5) * 10
+            };
+        }
+
+        function fireConfetti(ratio = 0.5) {
+            let count = Math.floor(60 * ratio);
+            for (let i = 0; i < count; i++) {
+                particles.push(createParticle(window.innerWidth / 2, window.innerHeight / 2));
+            }
+        }
+
+        function fireConfettiCelebration() {
+            let duration = 3000;
+            let end = Date.now() + duration;
+            let interval = setInterval(() => {
+                if (Date.now() > end) {
+                    return clearInterval(interval);
+                }
+                particles.push(createParticle(Math.random() * window.innerWidth, Math.random() * window.innerHeight * 0.5));
+            }, 50);
+        }
+
+        function updateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += p.gravity;
+                p.opacity -= 0.015;
+                p.rotation += p.spin;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rotation * Math.PI) / 180);
+                ctx.globalAlpha = Math.max(0, p.opacity);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.restore();
+
+                if (p.opacity <= 0 || p.y > canvas.height) {
+                    particles.splice(index, 1);
+                }
+            });
+            requestAnimationFrame(updateParticles);
+        }
+        updateParticles();
+    </script>
+</body>
+</html>
